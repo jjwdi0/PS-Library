@@ -1,28 +1,44 @@
-#include <stdio.h>
-#include <algorithm>
+#include <bits/stdc++.h>
 #define MOD 20070713
 using namespace std;
-typedef long long ll;
+using ll = long long;
+using pr = pair<int, int>;
 
-int N, B[100005];
-pair<int, int> A[100005];
-ll D[100005], S[100005];
+struct BIT {
+	ll tree[200005]; int base;
+	void init(int x) { base = x; }
+	void add(int x, ll y) { while(x <= base) tree[x] = (tree[x] + y) % MOD, x += x & -x; }
+	ll q(int x) {
+		ll res = 0;
+		while(x) res = (res + tree[x]) % MOD, x -= x & -x;
+		return res;
+	}
+} bit;
 
-bool cmp(const pair<int, int> &x, const pair<int, int> &y) {
-	return x.second == y.second ? x.first < y.first : x.second < y.second;
-}
+int N;
+pr A[100005];
+vector<int> v;
 
 int main() {
-	scanf("%d", &N);
-	for(int i=1; i<=N; i++) scanf("%d %d", &A[i].first, &A[i].second);
-	sort(A + 1, A + N + 1, cmp);
-	for(int i=1; i<=N; i++) B[i] = A[i].second;
-	D[0] = S[0] = 1;
+	ios::sync_with_stdio(0), cin.tie(0);
+	cin >> N;
+	bit.init(2 * N + 1);
 	for(int i=1; i<=N; i++) {
-		S[i] += S[i-1];
-		D[i] = S[lower_bound(B, B + N + 1, A[i].first) - B - 1];
-		S[i] += D[i];
-		S[i] %= MOD;
+		cin >> A[i].first >> A[i].second;
+		v.push_back(A[i].first);
+		v.push_back(A[i].second);
 	}
-	printf("%lld", S[N]);
+	v.push_back(-1);
+	sort(v.begin(), v.end());
+	for(int i=1; i<=N; i++) {
+		A[i].first = (lower_bound(v.begin(), v.end(), A[i].first) - v.begin()) + 1;
+		A[i].second = (lower_bound(v.begin(), v.end(), A[i].second) - v.begin()) + 1;
+	}
+	bit.add(1, 1);
+	sort(A + 1, A + N + 1);
+	for(int i=1; i<=N; i++) {
+		ll x = bit.q(A[i].first - 1);
+		bit.add(A[i].second, x);
+	}
+	cout << bit.q(N * 2 + 1) % MOD;
 }
